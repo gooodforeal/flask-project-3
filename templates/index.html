@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1>{% block title %} Список накладных {% endblock %}</h1>
+    {% for item in items %}
+        <a href="{{ url_for('item', item_id=item['id']) }}">
+        <h2>{{ item['title'] }}</h2>
+        </a>
+        <span class="badge badge-primary">{{ item['company'] }}</span>
+        {% if item['status']=='выдан' %}
+            <span class="badge badge-success"> выдан </span>
+        {% else %}
+            <span class="badge badge-danger"> не выдан </span>
+        {%- endif %}
+        <hr>
+    {% endfor %}
+
+{% endblock %}

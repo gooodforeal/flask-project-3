@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h2>Создать новую накладную</h2>
+    <form method="POST">
+        <p>Грузополучатель</p>
+        <p>
+            <input type="search" list="character" name="companies" class="form-control">
+            <datalist id="character">
+            {% for com in comps %}
+                <option value="{{ com }}"></option>
+            {% endfor %}
+            </datalist>
+        </p>
+        <p>Дата</p>
+        <p>
+            <input type="date" id="date" name="date" class="form-control"/>
+        </p>
+        <p><b>Товары</b></p>
+         <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Позиция</th>
+                    <th scope="col">Количество</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for i in range(1, 6) %}
+                <tr>
+                    <td> {{ i }} </td>
+                    <td>
+                        <input type="search" list="poses" name="pos{{ i }}" class="form-control">
+                        <datalist id="poses">
+                        {% for p in positions %}
+                            <option value="{{ p }}"></option>
+                        {% endfor %}
+                        </datalist>
+                    </td>
+                    <td>
+                        <input type="number" step="1" min="0" name="count{{ i }}" class="form-control"/>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        <p>
+            <button type="submit" class="btn btn-primary
+            btn-sm" value="create" name="create">
+                Создать
+            </button>
+        </p>
+    </form>
+{% endblock %}
