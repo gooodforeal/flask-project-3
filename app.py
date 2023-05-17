@@ -1,33 +1,19 @@
-import json
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect, url_for
 from werkzeug.exceptions import abort
 import sqlite3
-from datetime import datetime
-import pandas as pd
 
 
 app = Flask(__name__)
-
-
-def get_all_positions():
-    df = pd.read_excel("data.xlsx")
-    return list(set(list(df["Товар"])))
-
-
-def get_all_companies():
-    conn = get_db_connection()
-    elements = conn.execute('SELECT company FROM items').fetchall()
-    res = list(set([el["company"] for el in elements]))
-    return res
+app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
 
 
 def get_item(item_id):
     conn = get_db_connection()
-    item = conn.execute('SELECT * FROM items WHERE id = ?', (item_id,)).fetchone()
+    item = conn.execute('SELECT * FROM workflows WHERE id = ?', (item_id,)).fetchone()
     tmp = {}
     for key in item.keys():
-        if key == "position":
-            tmp[key] = json.loads(item[key])
+        if key == "variables":
+            tmp[key] = item[key].split(",")
         else:
             tmp[key] = item[key]
     conn.close()
@@ -36,15 +22,19 @@ def get_item(item_id):
     return tmp
 
 
-def change_status(item_id):
-    conn = sqlite3.connect('database.db')
-    cursorObj = conn.cursor()
-    ex = f'Update items set status = "выдан" where id = "{item_id}"'
-    cursorObj.execute(ex)
-    now = datetime.now().strftime('%d.%m.%Y, %H:%M')
-    ex = f'Update items set time = "{now}" where id = "{item_id}"'
-    cursorObj.execute(ex)
-    conn.commit()
+def get_number(con):
+    cursorObj = con.cursor()
+    ex = 'SELECT id FROM workflows'
+    items = cursorObj.execute(ex).fetchall()
+    res = max([el[0] for el in items])
+    return res
+
+
+def insert_to_db(con, entities):
+    cursorObj = con.cursor()
+    ex = 'INSERT INTO workflows(id, title, variables) VALUES(?, ?, ?)'
+    cursorObj.execute(ex, entities)
+    con.commit()
 
 
 def get_db_connection():
@@ -53,44 +43,61 @@ def get_db_connection():
     return conn
 
 
-@app.route('/<int:item_id>', methods=['GET', 'POST'])
+@app.route('/<int:item_id>')
 def item(item_id):
-    if request.method == 'POST':
-        if request.form.get('give_prod') == 'give_prod':
-            change_status(item_id)
-    elif request.method == 'GET':
-        pass
     item = get_item(item_id)
     return render_template('item.html', item=item)
 
 
-@app.route('/new', methods=['GET', 'POST'])
-def new_item():
+@app.route('/launch/<int:item_id>', methods=["POST", "GET"])
+def launch(item_id):
+    item = get_item(item_id)
     if request.method == 'POST':
-        if request.form.get("companies") == "":
-            company = None
+        variables = {}
+        email = request.form.get("email")
+        mail = request.form.get("mail")
+        vr = request.form.getlist("vars")
+        names = item["variables"]
+        for i in range(len(vr)):
+            variables[names[i]] = vr[i]
+        for k, v in variables.items():
+            mail = mail.replace(f"{{{{{k}}}}}", v)
+        mail = mail.replace("{", "")
+        mail = mail.replace("}", "")
+        print(variables, email, mail)
+        return redirect(url_for('index'))
+    return render_template('launch.html', item=item)
+
+
+@app.route('/new', methods=["POST", "GET"])
+def new_item():
+    error = None
+    con = get_db_connection()
+    if request.method == 'POST':
+        skills = request.form.getlist('skill[]')
+        res = ""
+        title = ""
+        if skills[0] == "": #Проверка названия на пустоту
+            error = 'Задайте название'
         else:
-            company = request.form.get("companies")
-        if request.form.get("date") == "":
-            date = None
-        else:
-            date = datetime.strptime(str(request.form.get("date")), '%Y-%m-%d').strftime("%d.%m.%Y")
-        new_positions = []
-        c = 1
-        for i in range(1, 6):
-            if request.form.get(f"pos{i}") != "" and request.form.get(f"count{i}") != "":
-                new_positions.append([c, request.form.get(f"pos{i}"), request.form.get(f"count{i}")])
-                c += 1
-        print(new_positions, company, date)
-    comps = get_all_companies()
-    positions = get_all_positions()
-    return render_template('new_item.html', comps=comps, positions=positions)
+            i = 0
+            for value in skills:
+                if i == 0:
+                    title = value
+                else:
+                    res += value + ","
+                i += 1
+            res = res[:-1]
+            number = get_number(con) + 1
+            insert_to_db(con, (number, title, res))
+            return redirect(url_for('index'))
+    return render_template('new_item.html', error=error)
 
 
 @app.route('/')
 def index():
     conn = get_db_connection()
-    items = conn.execute('SELECT * FROM items').fetchall()
+    items = conn.execute('SELECT * FROM workflows').fetchall()
     conn.close()
     return render_template('index.html', items=items)
 

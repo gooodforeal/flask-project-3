@@ -2,43 +2,21 @@
 
 {% block content %}
     <h2>{% block title %} {{ item['title'] }} {% endblock %}</h2>
-    <span class="badge badge-primary">{{ item['company'] }}</span>
-    {% if item['status']=='выдан' %}
-        <span class="badge badge-success"> выдан </span>
-    {% else %}
-        <span class="badge badge-danger"> не выдан </span>
-    {%- endif %}
     <hr>
     <table class="table">
         <thead>
             <tr>
-                <th scope="col">#</th>
-                <th scope="col">Позиция</th>
-                <th scope="col">Единица измерения</th>
-                <th scope="col">Количество</th>
+                <th scope="col">Вид</th>
+                <th scope="col">Значение</th>
             </tr>
         </thead>
         <tbody>
-        {% for pos in item["position"] %}
+        {% for v in item["variables"] %}
         <tr>
-            <td> {{ pos[0] }} </td>
-            <td> {{ pos[1] }} </td>
-            <td> {{ pos[2] }} </td>
-            <td> {{ pos[3] }} </td>
+            <td> Переменная </td>
+            <td> {{ v }} </td>
         </tr>
         {% endfor %}
         </tbody>
     </table>
-    {% if item['status']=='выдан' %}
-        <p><h5>Товары были выданы {{ item['date'] }}</h5></p>
-    {% else %}
-        <p>
-            <form method="POST">
-                <button type="submit" class="btn btn-primary
-                btn-sm" value="give_prod" name="give_prod">Выдать товары по накладной</button>
-            </form>
-        </p>
-    {%- endif %}
-    </p>
-
 {% endblock %}
