@@ -68,7 +68,7 @@ $("body").on("click",".removeclass", function(e){ //user click on remove text
     {% endif %}
     <hr>
     <div class="form-group">
-        <form name="add_skills" id="add_skills" method="POST">
+        <form name="add_skills" id="add_skills" method="POST" enctype="multipart/form-data">
         <div id="InputsWrapper">
             <div class="row">
                 <div class="col-xs-4"><b>Название workflow</b></div>
@@ -80,10 +80,10 @@ $("body").on("click",".removeclass", function(e){ //user click on remove text
                 <div class="col-xs-4"><button type="button" name="add" id="AddMoreFileBox" class="btn btn-success">+</button></div>
             </div>
         </div>
-        <br/>
-            <p>
+        <input type="file" name="file" class="col-xs-4">
+        <p>
             <button type="submit" class="btn btn-primary
-            btn-sm" value="create" name="create">
+            btn-sm" value="Upload">
                 Создать
             </button>
         </p>
