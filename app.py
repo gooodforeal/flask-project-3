@@ -22,7 +22,7 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 def send_mail(email):
     filepath = "result.docx"
     basename = os.path.basename(filepath)
-    address = "2390603@gmail.com"
+    address = ""
 
     # Compose attachment
     part = MIMEBase('application', "octet-stream")
@@ -40,7 +40,7 @@ def send_mail(email):
     # Send mail
     server = smtplib.SMTP('smtp.gmail.com', 25)
     server.starttls()
-    server.login(address, "lpfyldfgrnnzdtpp")
+    server.login(address, "")
     text = msg.as_string()
     server.sendmail(address, email, msg.as_string())
     server.quit()
